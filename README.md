@@ -1,1 +1,2 @@
-# Proyecto_final
+# Electiva
+Repositorio con recursos para la clase electiva
