@@ -23,7 +23,7 @@ from pox.core import core
 import pox.openflow.libopenflow_01 as of
 from pox.lib.util import dpid_to_str
 from pox.lib.util import str_to_bool
-import pox.lib.packet.ethernet as pkt
+import pox.lib.packet as pkt
 from pox.lib.addresses import IPAddr, EthAddr
 import time
 
@@ -100,21 +100,31 @@ class LearningSwitch (object):
 
     packet = event.parsed
     ip_packet = packet.payload
-    print ip_packet.payload
+    print "Esta es la IP", ip_packet.payload
     ip_origen = ip_packet.srcip
 
-    id_fila = str(ip_origen).split(".")[3]
-    print "La fila seria: ", id_fila
+    #id_fila = str(ip_origen).split(".")[3]
+    #print "La fila seria: ", id_fila
 
-    msg = of.ofp_flow_mod()
-    msg.match = of.ofp_match.from_packet(packet, event.port)
-    msg.idle_timeout = 10
-    msg.hard_timeout = 30
+    if ip_packet.protocol == pkt.ipv4.ICMP_PROTOCOL == 1:
+      print "va por la fila 1"  
+
+    if ip_packet.protocol == pkt.ipv4.TCP_PROTOCOL == 2:
+      print "va por la fila 2"  
+
+    if ip_packet.protocol == pkt.ipv4.UDP_PROTOCOL == 3:
+      print "va por la fila 3"
+  
+
+    #msg = of.ofp_flow_mod()
+    #msg.match = of.ofp_match.from_packet(packet, event.port)
+    #msg.idle_timeout = 10
+    #msg.hard_timeout = 30
 
     # La unica diferencia respecto a un "output" normal, es que agregamos el id de la fila
-    msg.actions.append(of.ofp_action_enqueue(port = port, queue_id=int(id_fila)))
-    msg.data = event.ofp # 6a
-    self.connection.send(msg)
+    #msg.actions.append(of.ofp_action_enqueue(port = port, queue_id=int(id_fila)))
+    #msg.data = event.ofp # 6a
+    #self.connection.send(msg)
 
   def _handle_PacketIn (self, event):
     """
@@ -193,7 +203,7 @@ class LearningSwitch (object):
           return
         # 6
 
-        if packet.type == pkt.IP_TYPE:
+        if packet.type == pkt.ethernet.IP_TYPE:
 
           # El evento packet_in recibe un objeto llamado "evento", este evento cont$
           # 1. El puerto por el que ingresa el paquete, que es necesario para reali$
@@ -203,13 +213,12 @@ class LearningSwitch (object):
           # El paquete que recibimos es de tipo "Ethernet", asi que su carga util s$
           # El paquete ip_packet ya es un paquete IP, por lo tal posee un campo que$
           ip_destino = ip_packet.dstip
-          print "IP Destino: ", ip_destino
+          #print "IP Destino: ", ip_destino
           # Note la funcion IPAddr, se usa para manejar direcciones IP, en este cas$
-          if (ip_destino == IPAddr(ip_servidor)):
-                # Solo estamos enviando hacia las filas el trafico de salida hacia el servidor
-                print "Enviar a fila"
-                self.enviar_a_fila(event, port)
-		return
+          #if (ip_destino == IPAddr(ip_servidor)):
+          # Solo estamos enviando hacia las filas el trafico de salida hacia el servidor
+          print "Enviar a fila"
+          self.enviar_a_fila(event, port)
         else:
           print "Not IP packet"
 
